@@ -1,9 +1,7 @@
 package crawler
 
 import (
-	"fmt"
 	"net/http"
-	"os"
 
 	"golang.org/x/net/html"
 )
@@ -29,18 +27,16 @@ func filter(node *html.Node, class string, nodes *[]*html.Node) []*html.Node {
 	return filter(node.NextSibling, class, nodes)
 }
 
-func Crawl(url string) []*html.Node {
+func Crawl(url string) ([]*html.Node, error) {
 	resp, err := http.Get(url)
 	if err != nil {
-		fmt.Print(err)
-		os.Exit(1)
+		return nil, err
 	}
 
 	root, err := html.Parse(resp.Body)
 	if err != nil {
-		fmt.Print(err)
-		os.Exit(1)
+		return nil, err
 	}
 
-	return filter(root.FirstChild, "performanceevents_item_info_date", &[]*html.Node{})
+	return filter(root.FirstChild, "performanceevents_item_info_date", &[]*html.Node{}), nil
 }

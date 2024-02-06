@@ -23,11 +23,20 @@ func main() {
 
 	flag.Parse()
 
+	if *apiKey == "" || *channelId == "" {
+		fmt.Println("Missing API Key or Channel ID!")
+		os.Exit(1)
+	}
+
 	tg := telegram.Telegram{ApiKey: *apiKey, ChannelId: *channelId}
 
 	for {
 		for _, url := range urls {
-			nodes := crawler.Crawl(url)
+			nodes, err := crawler.Crawl(url)
+			if err != nil {
+				fmt.Print(err)
+				os.Exit(1)
+			}
 
 			for _, n := range nodes {
 				date := n.FirstChild.Data
