@@ -42,6 +42,7 @@ func main() {
 				if err != nil {
 					fmt.Print(err)
 					tg.SendMessage("Мені Пагано: " + err.Error())
+					return
 				}
 
 				for _, n := range nodes {
@@ -55,6 +56,7 @@ func main() {
 						if err != nil {
 							fmt.Print(err)
 							tg.SendMessage("Мені Пагано: " + err.Error())
+							return
 						}
 
 						dates.Store(u+date, true)
