@@ -4,10 +4,12 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/keegcode/franko-crawler/internal/crawler"
 	"github.com/keegcode/franko-crawler/internal/telegram"
+	"golang.org/x/net/html"
 )
 
 var urls []string = []string{
@@ -15,7 +17,7 @@ var urls []string = []string{
 	"http://ft.org.ua/ua/performance/kaligula",
 }
 
-var dates map[string]bool = map[string]bool{}
+var dates sync.Map = sync.Map{}
 
 func main() {
 	apiKey := flag.String("api", "", "Telegram Bot API Key")
@@ -29,30 +31,38 @@ func main() {
 	}
 
 	tg := telegram.Telegram{ApiKey: *apiKey, ChannelId: *channelId}
+	wg := sync.WaitGroup{}
 
 	for {
 		for _, url := range urls {
-			nodes, err := crawler.Crawl(url)
-			if err != nil {
-				fmt.Print(err)
-				os.Exit(1)
-			}
-
-			for _, n := range nodes {
-				date := n.FirstChild.Data
-				if dates[url+date] {
-					continue
-				}
-
-				err := tg.SendMessage(url + "\n" + date)
+			wg.Add(1)
+			go func(u string) {
+				defer wg.Done()
+				nodes, err := crawler.Crawl(u)
 				if err != nil {
 					fmt.Print(err)
-					os.Exit(1)
+					tg.SendMessage("Мені Пагано: " + err.Error())
 				}
 
-				dates[url+date] = true
-			}
+				for _, n := range nodes {
+					go func(nd *html.Node) {
+						date := nd.FirstChild.Data
+						if _, ok := dates.Load(u + date); ok {
+							return
+						}
+
+						err := tg.SendMessage(u + "\n" + date)
+						if err != nil {
+							fmt.Print(err)
+							tg.SendMessage("Мені Пагано: " + err.Error())
+						}
+
+						dates.Store(u+date, true)
+					}(n)
+				}
+			}(url)
 		}
+		wg.Wait()
 		time.Sleep(time.Minute)
 	}
 }
