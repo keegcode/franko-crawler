@@ -2,6 +2,8 @@ package main
 
 import (
 	"flag"
+	"fmt"
+	"os"
 	"time"
 
 	"github.com/keegcode/franko-crawler/internal/crawler"
@@ -17,10 +19,11 @@ var dates map[string]bool = map[string]bool{}
 
 func main() {
 	apiKey := flag.String("api", "", "Telegram Bot API Key")
+	channelId := flag.String("id", "", "Telegram Channel ID")
 
 	flag.Parse()
 
-	tg := telegram.Telegram{ApiKey: *apiKey}
+	tg := telegram.Telegram{ApiKey: *apiKey, ChannelId: *channelId}
 
 	for {
 		for _, url := range urls {
@@ -31,7 +34,13 @@ func main() {
 				if dates[url+date] {
 					continue
 				}
-				tg.SendMessage(url + "\n" + date)
+
+				err := tg.SendMessage(url + "\n" + date)
+				if err != nil {
+					fmt.Print(err)
+					os.Exit(1)
+				}
+
 				dates[url+date] = true
 			}
 		}
