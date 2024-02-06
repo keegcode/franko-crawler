@@ -1,4 +1,4 @@
-module github.com/keegcode/fnako-crawler
+module github.com/keegcode/franko-crawler
 
 go 1.21.6
 
