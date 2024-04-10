@@ -13,8 +13,8 @@ import (
 )
 
 var urls []string = []string{
-	"http://ft.org.ua/ua/performance/konotopska-vidma",
-	"http://ft.org.ua/ua/performance/kaligula",
+	"https://ft.org.ua/ua/performance/konotopska-vidma",
+	"https://ft.org.ua/ua/performance/kaligula",
 }
 
 var dates sync.Map = sync.Map{}
